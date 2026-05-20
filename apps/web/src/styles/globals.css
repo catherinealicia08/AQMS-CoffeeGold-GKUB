@@ -1,22 +1,13 @@
-:root {
-  --bg: #f8f4ec;
-  --fg: #1d1a16;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: Georgia, "Times New Roman", serif;
-  background: radial-gradient(circle at 20% 20%, #fff, var(--bg));
-  color: var(--fg);
-}
-
-.container {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply bg-cream text-gray-900;
+  }
 }
