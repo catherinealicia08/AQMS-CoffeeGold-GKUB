@@ -1,6 +1,7 @@
 'use client';
 
 import BottomNav from '@/components/BottomNav';
+import CartBar from '@/components/CartBar';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -28,6 +29,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="relative min-h-dvh pb-20">
       {children}
+      <CartBar />
       <BottomNav />
     </div>
   );

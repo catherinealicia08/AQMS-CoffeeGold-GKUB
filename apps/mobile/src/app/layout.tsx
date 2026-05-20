@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from 'next';
+import { Manrope } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
+import { CartSheetProvider } from '@/context/CartSheetContext';
+
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
 
 export const metadata: Metadata = {
   title: 'Coffee Gold GKUB',
@@ -25,10 +29,12 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
-      <body>
+      <body className={manrope.className}>
         <AuthProvider>
           <CartProvider>
-            {children}
+            <CartSheetProvider>
+              {children}
+            </CartSheetProvider>
           </CartProvider>
         </AuthProvider>
       </body>

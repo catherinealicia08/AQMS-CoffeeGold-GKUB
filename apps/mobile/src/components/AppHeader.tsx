@@ -1,4 +1,3 @@
-import Link from 'next/link';
 
 interface AppHeaderProps {
   showCart?: boolean;
@@ -15,7 +14,7 @@ export default function AppHeader({ showCart, cartCount = 0, onCartClick }: AppH
             <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
           </svg>
         </div>
-        <span className="text-xs font-semibold text-gold tracking-wide">Coffee Gold GKUB</span>
+        <span className="text-base font-bold text-gold tracking-wide">Coffee Gold</span>
       </div>
       {showCart && (
         <button onClick={onCartClick} className="relative p-1">

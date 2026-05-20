@@ -21,10 +21,11 @@ const config: Config = {
           900: '#1A1302',
         },
         cream: '#FAF6EE',
+        'cream-light': '#FDFAF5',
         'cream-dark': '#F0E8D8',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Manrope', 'system-ui', 'sans-serif'],
       },
     },
   },

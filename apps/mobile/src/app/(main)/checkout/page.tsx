@@ -12,7 +12,7 @@ const SERVICE_CHARGE_RATE = 0.05;
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, total, clear } = useCart();
+  const { items, total, clear, increment, decrement } = useCart();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
@@ -53,58 +53,73 @@ export default function CheckoutPage() {
 
   return (
     <div className="flex flex-col min-h-dvh bg-cream">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-4 safe-top">
-        <button onClick={() => router.back()} className="p-1">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.5" strokeLinecap="round">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="font-bold text-gray-900">Checkout</h1>
+      {/* Sticky blur header */}
+      <div className="sticky top-0 z-10 bg-cream/80 backdrop-blur-md border-b border-black/5">
+        <div className="flex items-center gap-4 px-6 py-4">
+          <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6B4F0A" strokeWidth="2.5" strokeLinecap="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <h1 className="text-lg font-bold text-gold">Checkout</h1>
+        </div>
       </div>
 
-      <div className="flex-1 px-4 space-y-4 overflow-y-auto pb-36">
+      <div className="flex-1 px-4 pt-4 pb-36 space-y-4 overflow-y-auto">
+
         {/* Order type */}
-        <div className="bg-white rounded-2xl p-4">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Order Type</p>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-semibold text-gray-900 text-sm">Takeaway Only</p>
-              <p className="text-xs text-gray-400">Ready for pickup in 15 mins</p>
-            </div>
-            <div className="w-10 h-10 bg-cream-dark rounded-xl flex items-center justify-center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B6914" strokeWidth="2">
-                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-              </svg>
-            </div>
+        <div className="bg-cream-dark rounded-2xl px-5 py-4 flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <p className="text-[10px] font-bold text-gold uppercase tracking-wider">Order Type</p>
+            <p className="text-lg font-extrabold text-gray-900">Takeaway Only</p>
+            <p className="text-xs text-gray-500">Ready for pickup in 15 mins</p>
           </div>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#C19A38" strokeWidth="1.5" opacity="0.35">
+            <path d="M1 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 5h12M9 21a1 1 0 100-2 1 1 0 000 2zm10 0a1 1 0 100-2 1 1 0 000 2z" />
+          </svg>
         </div>
 
         {/* Order summary */}
-        <div className="bg-white rounded-2xl p-4">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Order Summary</p>
-          <div className="space-y-3">
-            {items.map((item) => (
-              <div key={item.id} className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-cream-dark flex items-center justify-center shrink-0">
-                  {item.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover rounded-xl" />
-                  ) : (
-                    <svg width="24" height="24" viewBox="0 0 64 64" fill="none">
-                      <rect x="16" y="18" width="32" height="30" rx="6" fill="#D4AE50" opacity="0.5" />
-                    </svg>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900">{item.name}</p>
-                  <p className="text-xs text-gray-400">{item.customizations.join(' · ')}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-gray-900">{formatRupiah(item.price)}</p>
-                  <div className="flex items-center gap-1 justify-end mt-1">
-                    <span className="text-xs bg-gold/10 text-gold px-2 py-0.5 rounded-full">× {item.qty}</span>
+        <div className="flex flex-col gap-3">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Order Summary</p>
+          <div className="flex flex-col gap-4">
+            {items.map((item, i) => (
+              <div key={item.id}>
+                {i > 0 && <div className="h-px bg-gray-200/60 my-1" />}
+                <div className="flex items-start gap-4">
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden bg-cream-dark shrink-0">
+                    {item.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <svg width="24" height="24" viewBox="0 0 64 64" fill="none">
+                          <rect x="16" y="18" width="32" height="30" rx="6" fill="#D4AE50" opacity="0.5" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 flex gap-2">
+                    {/* Left: name + tags */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base font-bold text-gray-900 leading-snug">{item.name}</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {item.customizations.map((c) => (
+                          <span key={c} className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                            {c}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Right: price + qty pill stacked */}
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <p className="text-base font-semibold text-gray-900">{formatRupiah(item.price)}</p>
+                      <div className="flex items-center bg-gold rounded-full h-8 w-24">
+                        <button onClick={() => decrement(item.id)} className="w-8 h-8 flex items-center justify-center text-white text-xl font-medium">−</button>
+                        <span className="flex-1 text-center text-white text-sm font-bold">{item.qty}</span>
+                        <button onClick={() => increment(item.id)} className="w-8 h-8 flex items-center justify-center text-white text-xl font-medium">+</button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -113,43 +128,49 @@ export default function CheckoutPage() {
         </div>
 
         {/* Payment method */}
-        <div className="bg-white rounded-2xl p-4">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Payment Method</p>
-          <div className="flex items-center gap-3 p-3 border-2 border-gold rounded-xl">
-            <div className="w-8 h-8 bg-red-600 rounded flex items-center justify-center shrink-0">
+        <div className="flex flex-col gap-3">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Payment Method</p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center shrink-0">
               <span className="text-white text-[9px] font-black">QRIS</span>
             </div>
-            <span className="text-sm font-semibold text-gray-900">QRIS</span>
+            <p className="text-base font-semibold text-gray-900">QRIS</p>
           </div>
         </div>
 
-        {/* Summary totals */}
-        <div className="bg-white rounded-2xl p-4 space-y-2">
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Subtotal</span>
-            <span>{formatRupiah(total)}</span>
+        {/* Totals */}
+        <div className="bg-cream-dark rounded-2xl px-5 py-4 flex flex-col gap-3">
+          <div className="flex justify-between">
+            <span className="text-sm text-gray-500">Subtotal</span>
+            <span className="text-sm font-medium text-gray-900">{formatRupiah(total)}</span>
           </div>
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Service Charge</span>
-            <span>{formatRupiah(serviceCharge)}</span>
+          <div className="flex justify-between">
+            <span className="text-sm text-gray-500">Service Charge</span>
+            <span className="text-sm font-medium text-gray-900">{formatRupiah(serviceCharge)}</span>
           </div>
-          <div className="h-px bg-gray-100 my-1" />
-          <div className="flex justify-between font-bold text-gray-900">
-            <span>Total Amount</span>
-            <span className="text-gold text-lg">{formatRupiah(grandTotal)}</span>
+          <div className="pt-3 border-t border-gray-200/60 flex justify-between items-baseline">
+            <span className="text-base font-bold text-gray-900">Total Amount</span>
+            <span className="text-2xl font-extrabold text-gold">{formatRupiah(grandTotal)}</span>
           </div>
         </div>
       </div>
 
-      {/* Pay button */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-4 bg-cream border-t border-cream-dark">
+      {/* Pay Now CTA */}
+      <div className="fixed bottom-16 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-6 py-4 bg-cream/90 border-t border-stone-300/20 backdrop-blur-md">
         <button
           onClick={handlePay}
           disabled={loading || items.length === 0}
-          className="w-full bg-gold-700 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-60"
-          style={{ backgroundColor: '#6B4F0A' }}
+          className="w-full px-8 py-4 rounded-lg flex items-center justify-center gap-3 text-white text-lg font-bold disabled:opacity-60 shadow-[0px_10px_15px_-3px_rgba(119,90,25,0.20)]"
+          style={{ background: 'linear-gradient(80deg, #6B4F0A, #C19A38)' }}
         >
-          {loading ? 'Memproses...' : <>Pay Now <span>→</span></>}
+          {loading ? 'Memproses...' : (
+            <>
+              <span>Pay Now</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </>
+          )}
         </button>
       </div>
     </div>

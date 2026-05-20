@@ -24,7 +24,20 @@ export function useMenu(category?: string) {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as MenuItem)));
+        const mapped = snap.docs.map((d) => {
+          const item = { id: d.id, ...d.data() } as MenuItem;
+          // Normalize Size option: replace any size choices with Normal/Upsize
+          if (item.options) {
+            // Remove Size option entirely — Upsize is handled as an add-on
+            item.options = item.options.filter((opt) => opt.name.toLowerCase() !== 'size');
+          }
+          // Ensure Upsize is always last in add-ons
+          if (!item.addons) item.addons = [];
+          const withoutUpsize = item.addons.filter((a) => a.name.toLowerCase() !== 'upsize');
+          item.addons = [...withoutUpsize, { name: 'Upsize', price: 5000 }];
+          return item;
+        });
+        setItems(mapped);
         setLoading(false);
       },
       (err) => {

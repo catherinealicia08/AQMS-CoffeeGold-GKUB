@@ -12,6 +12,7 @@ export interface MenuItem {
 export interface MenuOption {
   name: string;
   choices: string[];
+  prices?: number[]; // parallel with choices, e.g. [0, 5000, 10000]
 }
 
 export interface MenuAddon {
