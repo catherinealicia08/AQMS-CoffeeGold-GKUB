@@ -4,7 +4,7 @@
 
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Manrope', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -18,11 +18,69 @@
   }
 }
 
+@layer components {
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply w-full py-4 rounded-2xl flex items-center justify-center text-white text-base font-bold disabled:opacity-60 transition-opacity;
+    background: linear-gradient(80deg, #6B4F0A, #C19A38);
+  }
+  .btn-gold {
+    @apply w-full py-4 rounded-2xl flex items-center justify-center text-white text-base font-bold disabled:opacity-60 bg-gold-dark transition-opacity;
+  }
+
+  /* ── Cards ── */
+  .card {
+    @apply bg-cream-dark rounded-2xl px-4 py-4;
+  }
+  .card-item {
+    @apply rounded-2xl p-3 flex items-start gap-3;
+    background-color: #F5EFE4;
+  }
+
+  /* ── Typography ── */
+  .section-label {
+    @apply text-[10px] font-bold text-gold uppercase tracking-wider;
+  }
+  .section-label-gray {
+    @apply text-[10px] font-bold text-gray-400 uppercase tracking-wider;
+  }
+
+  /* ── Tags/Pills ── */
+  .tag {
+    @apply text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium;
+  }
+
+  /* ── Form inputs ── */
+  .input {
+    @apply w-full bg-cream-dark border border-gray-200/60 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:border-gold/50 transition-colors;
+  }
+
+  /* ── Qty pill ── */
+  .qty-pill {
+    @apply flex items-center bg-gold rounded-full h-8 w-24;
+  }
+  .qty-pill-sm {
+    @apply flex items-center bg-gold rounded-full h-7 w-20;
+  }
+  .qty-btn {
+    @apply w-8 h-8 flex items-center justify-center text-white text-xl font-medium;
+  }
+  .qty-btn-sm {
+    @apply w-7 h-7 flex items-center justify-center text-white text-xl font-medium;
+  }
+}
+
 @layer utilities {
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 16px);
   }
   .safe-top {
     padding-top: env(safe-area-inset-top, 0px);
+  }
+  .gradient-gold {
+    background: linear-gradient(80deg, #6B4F0A, #C19A38);
+  }
+  .gradient-gold-h {
+    background: linear-gradient(to right, #6B4F0A, #C19A38);
   }
 }

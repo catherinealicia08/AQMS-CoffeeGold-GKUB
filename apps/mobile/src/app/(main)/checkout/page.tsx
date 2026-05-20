@@ -81,7 +81,7 @@ export default function CheckoutPage() {
 
         {/* Order summary */}
         <div className="flex flex-col gap-3">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Order Summary</p>
+          <p className="section-label-gray">Order Summary</p>
           <div className="flex flex-col gap-4">
             {items.map((item, i) => (
               <div key={item.id}>
@@ -105,7 +105,7 @@ export default function CheckoutPage() {
                       <p className="text-base font-bold text-gray-900 leading-snug">{item.name}</p>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {item.customizations.map((c) => (
-                          <span key={c} className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                          <span key={c} className="tag">
                             {c}
                           </span>
                         ))}
@@ -129,7 +129,7 @@ export default function CheckoutPage() {
 
         {/* Payment method */}
         <div className="flex flex-col gap-3">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Payment Method</p>
+          <p className="section-label-gray">Payment Method</p>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center shrink-0">
               <span className="text-white text-[9px] font-black">QRIS</span>
@@ -160,8 +160,7 @@ export default function CheckoutPage() {
         <button
           onClick={handlePay}
           disabled={loading || items.length === 0}
-          className="w-full px-8 py-4 rounded-lg flex items-center justify-center gap-3 text-white text-lg font-bold disabled:opacity-60 shadow-[0px_10px_15px_-3px_rgba(119,90,25,0.20)]"
-          style={{ background: 'linear-gradient(80deg, #6B4F0A, #C19A38)' }}
+          className="btn-primary gap-3 shadow-[0px_10px_15px_-3px_rgba(119,90,25,0.20)]"
         >
           {loading ? 'Memproses...' : (
             <>

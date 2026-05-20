@@ -205,8 +205,7 @@ export default function CustomizePage() {
       <div className="fixed bottom-16 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-6 py-3 bg-cream/90 backdrop-blur-md z-10">
         <button
           onClick={handleAddToCart}
-          className="w-full py-4 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-[0px_10px_15px_-3px_rgba(119,90,25,0.20)]"
-          style={{ background: 'linear-gradient(80deg, #6B4F0A, #C19A38)' }}
+          className="btn-primary shadow-[0px_10px_15px_-3px_rgba(119,90,25,0.20)]"
         >
           Add to cart · {formatRupiah(totalPrice)}
         </button>

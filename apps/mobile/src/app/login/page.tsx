@@ -44,7 +44,7 @@ export default function LoginPage() {
       <div className="flex-1 flex flex-col justify-center px-6 py-12">
         {/* Logo */}
         <div className="flex flex-col items-center mb-10">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ backgroundColor: '#6B4F0A' }}>
+          <div className="w-14 h-14 rounded-2xl bg-gold-dark flex items-center justify-center mb-3">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
               <line x1="3" y1="6" x2="21" y2="6" />
@@ -57,25 +57,25 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1.5">Email</p>
+            <p className="section-label-gray mb-1.5">Email</p>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="you@example.com"
-              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gold"
+              className="input"
             />
           </div>
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1.5">Password</p>
+            <p className="section-label-gray mb-1.5">Password</p>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-gold"
+              className="input"
             />
           </div>
 
@@ -88,7 +88,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gold text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 text-sm disabled:opacity-60"
+            className="btn-gold gap-2"
           >
             {loading ? 'Masuk...' : 'Login'}
             {!loading && (

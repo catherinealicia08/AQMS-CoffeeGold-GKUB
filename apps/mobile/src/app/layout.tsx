@@ -5,7 +5,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import { CartSheetProvider } from '@/context/CartSheetContext';
 
-const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
+const manrope = Manrope({ subsets: ['latin'], display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Coffee Gold GKUB',

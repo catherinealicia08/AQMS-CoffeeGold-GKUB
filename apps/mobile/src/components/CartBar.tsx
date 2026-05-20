@@ -91,7 +91,7 @@ function CartSheet({ onClose }: { onClose: () => void }) {
                       {item.customizations.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1">
                           {item.customizations.map((c) => (
-                            <span key={c} className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                            <span key={c} className="tag">
                               {c}
                             </span>
                           ))}
@@ -135,8 +135,7 @@ function CartSheet({ onClose }: { onClose: () => void }) {
           <button
             onClick={handleCheckout}
             disabled={items.length === 0}
-            className="w-full py-4 rounded-2xl flex items-center justify-between px-5 disabled:opacity-40 transition-opacity shadow-[0px_25px_50px_-12px_rgba(119,90,25,0.40)]"
-            style={{ background: 'linear-gradient(to right, #6B4F0A, #C19A38)' }}
+            className="w-full py-4 rounded-2xl flex items-center justify-between px-5 disabled:opacity-40 transition-opacity shadow-[0px_25px_50px_-12px_rgba(119,90,25,0.40)] gradient-gold-h"
           >
             <div className="flex items-center gap-3">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
