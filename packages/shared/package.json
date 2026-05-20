@@ -2,5 +2,8 @@
   "name": "@aqms/shared",
   "private": true,
   "version": "0.1.0",
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+  "dependencies": {
+    "firebase": "^10.0.0"
+  }
 }

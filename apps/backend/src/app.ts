@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import morgan from 'morgan';
 
+import './config/firebase'; // init Firebase Admin pas startup
 import orderRoutes from './routes/orderRoutes';
 
 const app = express();
