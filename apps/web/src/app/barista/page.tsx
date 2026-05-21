@@ -1,22 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { auth } from '@aqms/shared';
+import { signOut } from 'firebase/auth';
 import Sidebar from '@/components/barista/Sidebar';
 import TopBar from '@/components/barista/TopBar';
 import OrderCard from '@/components/barista/OrderCard';
 import { useActiveOrders, useCompletedOrders } from '@/hooks/useOrders';
 import { formatTime } from '@/lib/format';
+import { QUEUE_STATUS } from '@aqms/shared';
 
 export default function BaristaPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'INCOMING' | 'COMPLETED'>('INCOMING');
+  const [search, setSearch] = useState('');
+  const [lastSync, setLastSync] = useState(new Date());
 
   const { orders: activeOrders } = useActiveOrders();
   const { orders: completedOrders } = useCompletedOrders();
+
+  useEffect(() => {
+    const id = setInterval(() => setLastSync(new Date()), 30000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -32,21 +41,41 @@ export default function BaristaPage() {
     );
   }
 
-  const orders = activeTab === 'INCOMING' ? activeOrders : completedOrders;
+  const isSearching = search.trim().length > 0;
+  const allOrders = [...activeOrders, ...completedOrders];
+  const rawOrders = activeTab === 'INCOMING' ? activeOrders : completedOrders;
+  const orders = isSearching
+    ? allOrders.filter((o) => {
+        const q = search.replace(/^#/, '').toLowerCase();
+        const displayNumber = String(o.queue_number ?? o.id.substring(0, 4)).toLowerCase();
+        return (
+          o.user_name?.toLowerCase().includes(q) ||
+          displayNumber.includes(q)
+        );
+      })
+    : rawOrders;
 
   return (
     <div className="flex h-screen bg-cream overflow-hidden">
-      <Sidebar activeTab={activeTab} onTabChange={(t) => setActiveTab(t as 'INCOMING' | 'COMPLETED')} />
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={(t) => setActiveTab(t as 'INCOMING' | 'COMPLETED')}
+        user={user}
+        onLogout={async () => { await signOut(auth); router.replace('/barista/login'); }}
+      />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar
           activeTab={activeTab}
           activeCount={activeOrders.length}
           completedCount={completedOrders.length}
+          search={search}
+          onSearchChange={setSearch}
+          searchCount={orders.length}
         />
 
         {/* Queue scroll area */}
-        <div className="flex-1 p-6 overflow-x-auto overflow-y-hidden">
+        <div className="flex-1 p-4 md:p-6 overflow-x-auto overflow-y-auto md:overflow-y-hidden">
           {orders.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center">
               <div className="w-16 h-16 rounded-full bg-cream-dark flex items-center justify-center mb-4">
@@ -70,12 +99,12 @@ export default function BaristaPage() {
               </p>
             </div>
           ) : (
-            <div className="flex gap-4 h-full">
+            <div className="flex flex-wrap md:flex-nowrap gap-4 items-start">
               {orders.map((order) => (
                 <OrderCard
                   key={order.id}
                   order={order}
-                  isCompleted={activeTab === 'COMPLETED'}
+                  isCompleted={isSearching ? order.status === QUEUE_STATUS.COMPLETED : activeTab === 'COMPLETED'}
                 />
               ))}
             </div>
@@ -83,24 +112,9 @@ export default function BaristaPage() {
         </div>
 
         {/* Bottom status bar */}
-        <div className="flex items-center justify-between px-6 py-2 bg-gold/90 text-white text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-            </div>
-            <span className="font-semibold">{user.displayName ?? user.email}</span>
-          </div>
-          <div className="flex items-center gap-4 text-white/70">
-            <span>ACTIVITY NOW AGO</span>
-            <span>LAST TASK · LAST NOW</span>
-            <span>© COFFEE GOLD GKUB</span>
-          </div>
-          <div className="text-white/70">
-            Last activity · {formatTime(new Date())}
-          </div>
+        <div className="flex items-center justify-between px-4 md:px-6 py-2 bg-gold/90 text-white text-xs">
+          <span className="text-white/70">Last sync · {formatTime(lastSync)}</span>
+          <span className="font-semibold">{formatTime(new Date())}</span>
         </div>
       </div>
     </div>

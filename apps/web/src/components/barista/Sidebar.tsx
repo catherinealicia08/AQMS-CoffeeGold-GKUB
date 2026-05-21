@@ -1,9 +1,7 @@
 'use client';
 
-import { auth } from '@aqms/shared';
-import { signOut } from 'firebase/auth';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import type { User } from 'firebase/auth';
 
 const NAV_ITEMS = [
   {
@@ -27,19 +25,15 @@ const NAV_ITEMS = [
 interface Props {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  user: User;
+  onLogout: () => void;
 }
 
-export default function Sidebar({ activeTab, onTabChange }: Props) {
-  const { user } = useAuth();
-  const router = useRouter();
-
-  async function handleSignOut() {
-    await signOut(auth);
-    router.replace('/barista/login');
-  }
+export default function Sidebar({ activeTab, onTabChange, user, onLogout }: Props) {
+  const [showLogout, setShowLogout] = useState(false);
 
   return (
-    <aside className="w-16 bg-white border-r border-gray-100 flex flex-col items-center py-4 gap-6 shrink-0">
+    <aside className="w-20 bg-white border-r border-gray-100 flex flex-col items-center py-4 gap-6 shrink-0">
       {/* Logo */}
       <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#6B4F0A' }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -68,26 +62,41 @@ export default function Sidebar({ activeTab, onTabChange }: Props) {
         })}
       </nav>
 
-      {/* User avatar */}
-      <div className="mt-auto flex flex-col items-center gap-1">
+      {/* User card */}
+      <div className="mt-auto w-full px-2 relative">
         <button
-          onClick={handleSignOut}
-          title="Logout"
-          className="w-9 h-9 rounded-full bg-cream-dark flex items-center justify-center overflow-hidden"
+          onClick={() => setShowLogout((v) => !v)}
+          className="w-full flex flex-col items-center gap-1 bg-cream rounded-xl py-2 px-1 transition-colors hover:bg-cream-dark"
         >
-          {user?.photoURL ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.photoURL} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B6914" strokeWidth="1.5">
+          <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B4F0A" strokeWidth="2">
               <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
-          )}
+          </div>
+          <span className="text-[8px] font-bold text-gold-dark truncate w-full text-center" style={{ color: '#6B4F0A' }}>
+            {user.displayName?.split(' ')[0] ?? 'Barista'}
+          </span>
         </button>
-        <span className="text-[8px] text-gray-400 text-center leading-tight max-w-[50px] truncate">
-          {user?.displayName?.split(' ')[0] ?? 'Barista'}
-        </span>
+
+        {/* Logout popup */}
+        {showLogout && (
+          <div className="absolute bottom-full left-0 mb-2 w-48 bg-white rounded-2xl shadow-lg p-4 z-50">
+            <p className="text-[10px] text-gray-400 mb-1">Logged in as</p>
+            <p className="text-xs font-semibold text-gray-800 truncate mb-3">{user.displayName ?? user.email}</p>
+            <button
+              onClick={onLogout}
+              className="w-full flex items-center gap-2 text-red-500 hover:bg-red-50 rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Logout
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );

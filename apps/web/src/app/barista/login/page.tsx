@@ -13,7 +13,7 @@ export default function BaristaLoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -55,7 +55,7 @@ export default function BaristaLoginPage() {
             />
           </div>
           <div>
-            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1.5">Barista ID</p>
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1.5">Barista Mail</p>
             <input
               type="email"
               value={email}
@@ -88,19 +88,6 @@ export default function BaristaLoginPage() {
             {loading ? 'Masuk...' : 'Login to Station'}
           </button>
         </form>
-
-        <div className="flex items-center gap-3 my-4">
-          <div className="h-px flex-1 bg-gray-200" />
-          <span className="text-xs text-gray-400">or</span>
-          <div className="h-px flex-1 bg-gray-200" />
-        </div>
-
-        <button
-          type="button"
-          className="w-full bg-white border border-gray-200 py-3 rounded-2xl text-xs text-gray-500 text-center"
-        >
-          Need help?
-        </button>
 
         <p className="text-center text-[10px] text-gray-300 mt-6">
           © 2024 COFFEE GOLD GKUB. All rights reserved.

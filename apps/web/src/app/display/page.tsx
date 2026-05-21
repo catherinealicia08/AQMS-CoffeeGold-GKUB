@@ -22,12 +22,13 @@ export default function DisplayPage() {
   const { preparing, ready } = useQueueDisplay();
 
   // Fill preparing grid to always show 9 cells
-  const preparingGrid = Array.from({ length: 9 }).map((_, i) => preparing[i] ?? null);
+  const gridSize = Math.max(6, Math.ceil(preparing.length / 3) * 3);
+  const preparingGrid = Array.from({ length: gridSize }).map((_, i) => preparing[i] ?? null);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#FAF6EE' }}>
+    <div className="h-screen flex flex-col overflow-hidden" style={{ backgroundColor: '#FAF6EE' }}>
       {/* Header */}
-      <header className="flex items-center justify-between px-10 py-5">
+      <header className="flex items-center justify-between px-6 md:px-10 py-3 md:py-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#6B4F0A' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
@@ -37,40 +38,40 @@ export default function DisplayPage() {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-black text-gold" style={{ color: '#6B4F0A' }}>COFFEE GOLD GKUB</p>
+            <p className="text-sm font-black text-gold" style={{ color: '#6B4F0A' }}>COFFEE GOLD</p>
             <p className="text-[10px] text-gray-400 tracking-widest">QUEUE MANAGEMENT SYSTEM</p>
           </div>
         </div>
         <div className="text-right">
           <p className="text-xs font-bold tracking-widest text-gold" style={{ color: '#8B6914' }}>QUEUE MONITOR</p>
-          <p className="text-[10px] text-gray-400">Lobby A1</p>
+          <p className="text-[10px] text-gray-400">Counter</p>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="flex-1 grid grid-cols-2 gap-8 px-10 pb-6">
+      <main className="flex-1 grid grid-cols-2 gap-4 md:gap-8 px-6 md:px-10 pb-4 md:pb-6 min-h-0">
         {/* Left — Sedang Disiapkan */}
-        <section>
-          <div className="flex items-center gap-2 mb-5">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B6914" strokeWidth="2">
+        <section className="flex flex-col min-h-0 overflow-hidden">
+          <div className="flex items-center gap-2 mb-3 md:mb-5 shrink-0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B6914" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
-            <h2 className="font-bold text-gray-800">Sedang Disiapkan</h2>
+            <h2 className="font-bold text-sm md:text-base text-gray-800">Sedang Disiapkan</h2>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2 md:gap-3 overflow-y-auto">
             {preparingGrid.map((entry, i) => (
               <div
                 key={entry?.id ?? `empty-${i}`}
-                className={`aspect-square flex items-center justify-center rounded-2xl border-2 transition-all ${
+                className={`aspect-square min-h-[72px] flex items-center justify-center rounded-xl md:rounded-2xl border-2 transition-all ${
                   entry
                     ? 'bg-white border-gold/20 shadow-sm'
                     : 'bg-transparent border-dashed border-gray-200'
                 }`}
               >
                 {entry && (
-                  <span className="text-4xl font-black" style={{ color: '#8B6914' }}>
+                  <span className="text-2xl md:text-4xl font-black" style={{ color: '#8B6914' }}>
                     {entry.queue_number}
                   </span>
                 )}
@@ -80,29 +81,29 @@ export default function DisplayPage() {
         </section>
 
         {/* Right — Siap Diambil */}
-        <section>
-          <div className="flex items-center gap-2 mb-5">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2">
+        <section className="flex flex-col min-h-0">
+          <div className="flex items-center gap-2 mb-3 md:mb-5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2">
               <polyline points="20 6 9 17 4 12" />
             </svg>
-            <h2 className="font-bold text-gray-800">Siap Diambil</h2>
+            <h2 className="font-bold text-sm md:text-base text-gray-800">Siap Diambil</h2>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2 md:gap-3 overflow-y-auto">
             {ready.length === 0 ? (
-              <div className="flex-1 flex items-center justify-center py-20">
-                <p className="text-sm text-gray-300 italic">Belum ada pesanan siap</p>
+              <div className="flex items-center justify-center py-10 md:py-20">
+                <p className="text-xs md:text-sm text-gray-300 italic">Belum ada pesanan siap</p>
               </div>
             ) : (
               ready.map((entry, i) => (
                 <div
                   key={entry.id}
-                  className={`flex items-center px-6 py-4 rounded-2xl ${
+                  className={`flex items-center px-4 md:px-6 py-3 md:py-4 rounded-xl md:rounded-2xl ${
                     i === 0 ? 'animate-pulse-once' : ''
                   }`}
                   style={{ backgroundColor: '#C19A38' }}
                 >
-                  <span className="text-4xl font-black text-white">{entry.queue_number}</span>
+                  <span className="text-2xl md:text-4xl font-black text-white">{entry.queue_number}</span>
                 </div>
               ))
             )}
@@ -112,7 +113,7 @@ export default function DisplayPage() {
 
       {/* Footer ticker */}
       <footer
-        className="flex items-center justify-between px-10 py-4"
+        className="flex items-center justify-between px-6 md:px-10 py-3 md:py-4"
         style={{ backgroundColor: '#6B4F0A' }}
       >
         <div className="flex items-center gap-3 text-white">

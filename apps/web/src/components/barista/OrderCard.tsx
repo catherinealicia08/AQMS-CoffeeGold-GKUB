@@ -26,7 +26,7 @@ export default function OrderCard({ order, isCompleted }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-4 flex flex-col gap-3 min-w-[200px] w-[220px] shrink-0 shadow-sm">
+    <div className="bg-white rounded-2xl p-4 flex flex-col gap-3 w-full md:w-[220px] md:min-w-[200px] md:shrink-0 shadow-sm">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
