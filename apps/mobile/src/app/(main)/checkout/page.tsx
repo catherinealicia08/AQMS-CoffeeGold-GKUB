@@ -5,10 +5,28 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@aqms/shared';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  runTransaction,
+  serverTimestamp,
+} from 'firebase/firestore';
 import { formatRupiah } from '@/lib/format';
 
 const SERVICE_CHARGE_RATE = 0.05;
+
+// Dokumen counter di Firestore: counters/daily_queue
+const COUNTER_REF = () => doc(db, 'counters', 'daily_queue');
+
+/** Ambil tanggal hari ini dalam format YYYY-MM-DD (WIB) */
+function todayString() {
+  return new Date().toLocaleDateString('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).split('/').reverse().join('-'); // → "2026-05-21"
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -24,27 +42,51 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      const orderData = {
-        user_id: user?.uid ?? null,
-        user_name: user?.displayName ?? 'Tamu',
-        items: items.map((i) => ({
-          product_id: i.id,
-          name: i.name,
-          price: i.price,
-          qty: i.qty,
-          customizations: i.customizations,
-        })),
-        subtotal: total,
-        service_charge: serviceCharge,
-        total: grandTotal,
-        payment_method: 'qris',
-        status: 'queued',
-        created_at: serverTimestamp(),
-      };
+      const orderCollectionRef = collection(db, 'orders');
+      const counterRef = COUNTER_REF();
 
-      const docRef = await addDoc(collection(db, 'orders'), orderData);
+      // runTransaction menjamin queue_number tidak bentrok walau ada order bersamaan
+      const newOrderRef = doc(orderCollectionRef);
+
+      await runTransaction(db, async (tx) => {
+        const counterSnap = await tx.get(counterRef);
+        const today = todayString();
+
+        let nextNumber: number;
+
+        if (!counterSnap.exists() || counterSnap.data().date !== today) {
+          // Hari baru atau counter belum ada → mulai dari 1
+          nextNumber = 1;
+        } else {
+          nextNumber = (counterSnap.data().count as number) + 1;
+        }
+
+        // Update counter
+        tx.set(counterRef, { count: nextNumber, date: today });
+
+        // Tulis order dengan queue_number
+        tx.set(newOrderRef, {
+          user_id: user?.uid ?? null,
+          user_name: user?.displayName ?? 'Tamu',
+          items: items.map((i) => ({
+            product_id: i.id,
+            name: i.name,
+            price: i.price,
+            qty: i.qty,
+            customizations: i.customizations,
+          })),
+          subtotal: total,
+          service_charge: serviceCharge,
+          total: grandTotal,
+          payment_method: 'qris',
+          queue_number: nextNumber,
+          status: 'queued',
+          created_at: serverTimestamp(),
+        });
+      });
+
       clear();
-      router.replace(`/track?orderId=${docRef.id}`);
+      router.replace(`/track?orderId=${newOrderRef.id}`);
     } catch (err) {
       console.error('Order failed', err);
       setLoading(false);
