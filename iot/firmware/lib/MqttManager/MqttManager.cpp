@@ -11,13 +11,28 @@ MqttManager::MqttManager(const char* s, const char* p, const char* srv, uint16_t
 }
 
 void MqttManager::connectWiFi() {
-    Serial.print("Menghubungkan ke Wi-Fi...");
+    Serial.print("Menghubungkan ke Wi-Fi: ");
+    Serial.println(ssid);
+    
+    // Putuskan koneksi sebelumnya jika ada
+    WiFi.disconnect(true);
+    delay(1000);
+    
     WiFi.begin(ssid, password);
+    
+    int counter = 0;
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.print(".");
+        counter++;
+        
+        // Setiap 10 kali mencoba (5 detik), cetak kode status aslinya
+        if (counter % 10 == 0) {
+            Serial.print("\n[DEBUG] Status Wi-Fi Saat Ini: ");
+            Serial.println(WiFi.status()); 
+        }
     }
-    Serial.println("\nWi-Fi Terhubung.");
+    Serial.println("\nWi-Fi Terhubung!");
 }
 
 void MqttManager::reconnectMqtt() {

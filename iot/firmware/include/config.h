@@ -4,6 +4,10 @@
 // Konfigurasi Pin Sensor GM65 & Tombol (Sesuai Desain Rangkaian)
 #define GM65_RX_PIN 34
 #define GM65_TX_PIN 32
+
+// #define GM65_RX_PIN 16 // ESP32 RX2 connects to Scanner TX
+// #define GM65_TX_PIN 17 // ESP32 TX2 connects to Scanner RX
+
 #define BUTTON_PIN 4
 
 // Konfigurasi OLED I2C
@@ -12,8 +16,8 @@
 #define OLED_RESET -1
 
 // Kredensial Wi-Fi (Ubah sesuai dengan jaringan di lokasi)
-#define WIFI_SSID "SmartHome"
-#define WIFI_PASSWORD "11223344"
+#define WIFI_SSID "nauraa"
+#define WIFI_PASSWORD "12345678"
 
 // Kredensial MQTT Broker (Ubah dengan IP Server/Backend)
 #define MQTT_SERVER "fac6cb04653c4b92893cb77685953ee0.s1.eu.hivemq.cloud" 

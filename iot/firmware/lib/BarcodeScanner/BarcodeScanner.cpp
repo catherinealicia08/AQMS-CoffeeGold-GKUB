@@ -3,30 +3,34 @@
 BarcodeScanner::BarcodeScanner(uint8_t rx, uint8_t tx) {
     rxPin = rx;
     txPin = tx;
-    serialGM65 = new HardwareSerial(2); // Menggunakan UART2
+    serialGM65 = new HardwareSerial(2); // 2 explicitly calls Hardware UART2
 }
 
 void BarcodeScanner::begin(long baudRate) {
     serialGM65->begin(baudRate, SERIAL_8N1, rxPin, txPin);
-    serialGM65->setTimeout(10); // Non-blocking timeout
+    // No custom timeout needed - we use a fixed delay approach instead
 }
 
 bool BarcodeScanner::scanAvailable() {
-    // Jika ada data masuk, langsung ambil saat itu juga tanpa menunggu batas waktu
     if (serialGM65->available() > 0) {
+        // Wait 100ms for the FULL barcode packet to arrive in the buffer.
+        // At 9600 baud, a 20-char barcode takes ~20ms, so 100ms is plenty.
+        // This avoids readStringUntil() which resets its timer on every byte
+        // received and never returns while the cable is connected.
+        delay(100);
+
         lastScannedData = "";
-        
-        // Baca semua karakter yang tersedia di detik itu juga
         while (serialGM65->available() > 0) {
-            char c = serialGM65->read();
-            // Hanya ambil karakter teks yang valid
+            char c = (char)serialGM65->read();
+            // Only keep printable ASCII characters (ignore CR, LF, noise)
             if (c >= 32 && c <= 126) {
                 lastScannedData += c;
             }
-            delay(2); // Beri jeda mikro agar buffer serial sempat terisi karakter berikutnya
         }
-        
         lastScannedData.trim();
+        Serial.print("[Scanner] Barcode: '");
+        Serial.print(lastScannedData);
+        Serial.println("'");
         return (lastScannedData.length() > 0);
     }
     return false;
