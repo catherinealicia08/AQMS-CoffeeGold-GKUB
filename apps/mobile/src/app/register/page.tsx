@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { auth } from '@aqms/shared';
+import { auth, db } from '@aqms/shared';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -22,6 +23,7 @@ export default function RegisterPage() {
     try {
       const { user } = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(user, { displayName: name });
+      await setDoc(doc(db, 'users', user.uid), { phone, displayName: name, email });
       router.replace('/');
     } catch {
       setError('Registrasi gagal. Coba lagi.');

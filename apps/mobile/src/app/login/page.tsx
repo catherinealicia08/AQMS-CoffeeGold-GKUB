@@ -80,7 +80,7 @@ export default function LoginPage() {
           </div>
 
           <div className="flex justify-end">
-            <button type="button" className="text-xs text-gold">Forgot password?</button>
+            <Link href="/forgot-password" className="text-xs text-gold">Forgot password?</Link>
           </div>
 
           {error && <p className="text-xs text-red-500">{error}</p>}
@@ -91,11 +91,6 @@ export default function LoginPage() {
             className="btn-gold gap-2"
           >
             {loading ? 'Masuk...' : 'Login'}
-            {!loading && (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            )}
           </button>
         </form>
 

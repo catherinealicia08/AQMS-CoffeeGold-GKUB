@@ -27,18 +27,18 @@ export default function OrderPage() {
         </div>
 
         {/* Photo + Origin card */}
-        <div className="relative w-[130px] h-[150px] shrink-0 ml-2">
+        <div className="relative w-[130px] h-[150px] shrink-0 ml-2 overflow-visible">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/hero-coffee.jpg"
+            src="/coffee.png"
             alt="Coffee"
             className="w-full h-full object-cover rounded-2xl"
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
           {/* Origin overlay card */}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[110px] bg-white rounded-xl px-3 py-2 shadow-md">
-            <p className="text-[9px] font-bold text-gold uppercase tracking-wider">Origin</p>
-            <p className="text-[11px] text-gray-700 font-medium leading-tight mt-0.5">Aceh Gayo Highlands, 1500m</p>
+          <div className="absolute -bottom-3 -left-4 right-6 bg-white rounded-xl px-2.5 py-1.5 shadow-md">
+            <p className="text-[8px] font-bold text-gold uppercase tracking-wider">Origin</p>
+            <p className="text-[10px] text-gray-700 font-medium leading-tight mt-0.5">Aceh Gayo Highlands, 1500m</p>
           </div>
         </div>
       </div>

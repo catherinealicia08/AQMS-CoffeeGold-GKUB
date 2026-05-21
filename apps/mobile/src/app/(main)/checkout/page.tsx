@@ -130,9 +130,10 @@ export default function CheckoutPage() {
         {/* Payment method */}
         <div className="flex flex-col gap-3">
           <p className="section-label-gray">Payment Method</p>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center shrink-0">
-              <span className="text-white text-[9px] font-black">QRIS</span>
+          <div className="bg-cream-dark rounded-2xl px-5 py-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 flex items-center justify-center bg-white">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/qris-logo.png" alt="QRIS" className="w-full h-full object-contain p-1.5" />
             </div>
             <p className="text-base font-semibold text-gray-900">QRIS</p>
           </div>

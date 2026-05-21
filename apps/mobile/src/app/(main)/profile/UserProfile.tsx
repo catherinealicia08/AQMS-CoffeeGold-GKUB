@@ -1,7 +1,9 @@
 'use client';
 
-import { auth } from '@aqms/shared';
-import { signOut } from 'firebase/auth';
+import { useState, useEffect } from 'react';
+import { auth, db } from '@aqms/shared';
+import { signOut, updateProfile } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
@@ -11,8 +13,27 @@ interface Props {
 
 export default function UserProfile({ user }: Props) {
   const router = useRouter();
+  const [phone, setPhone] = useState('');
+  const [displayName, setDisplayName] = useState(user.displayName ?? '');
+  const [editingName, setEditingName] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  async function handleSignOut() {
+  useEffect(() => {
+    getDoc(doc(db, 'users', user.uid)).then((snap) => {
+      if (snap.exists()) setPhone(snap.data().phone ?? '');
+    });
+  }, [user.uid]);
+
+  async function handleSaveName() {
+    if (!displayName.trim()) return;
+    setSaving(true);
+    await updateProfile(user, { displayName: displayName.trim() });
+    await setDoc(doc(db, 'users', user.uid), { displayName: displayName.trim() }, { merge: true });
+    setSaving(false);
+    setEditingName(false);
+  }
+
+async function handleSignOut() {
     await signOut(auth);
     router.refresh();
   }
@@ -38,14 +59,27 @@ export default function UserProfile({ user }: Props) {
 
       {/* Profile fields */}
       <div className="bg-white rounded-2xl p-5 space-y-4">
+        {/* Full Name */}
         <div>
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Full Name</p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-[10px] text-gray-400 uppercase tracking-wider">Full Name</p>
+            {!editingName ? (
+              <button onClick={() => setEditingName(true)} className="text-[10px] text-gold font-semibold">Edit</button>
+            ) : (
+              <button onClick={handleSaveName} disabled={saving} className="text-[10px] text-gold font-semibold disabled:opacity-50">
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+            )}
+          </div>
           <input
-            readOnly
-            value={user.displayName ?? '—'}
-            className="w-full bg-transparent text-sm text-gray-700 font-medium border-b border-gray-100 pb-1 outline-none"
+            readOnly={!editingName}
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            className={`w-full bg-transparent text-sm font-medium pb-1 outline-none transition-colors border-b ${editingName ? 'text-gray-900 border-gold' : 'text-gray-700 border-gray-100'}`}
           />
         </div>
+
+        {/* Email */}
         <div>
           <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Email Address</p>
           <input
@@ -54,11 +88,14 @@ export default function UserProfile({ user }: Props) {
             className="w-full bg-transparent text-sm text-gray-700 font-medium border-b border-gray-100 pb-1 outline-none"
           />
         </div>
+
+        {/* Phone */}
         <div>
           <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Phone Number</p>
           <input
             readOnly
-            value={user.phoneNumber ?? '—'}
+            value={phone}
+            placeholder="—"
             className="w-full bg-transparent text-sm text-gray-700 font-medium pb-1 outline-none"
           />
         </div>
