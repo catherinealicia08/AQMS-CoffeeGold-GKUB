@@ -1,3 +1,70 @@
 #include "MqttManager.h"
 
-void MqttManager::connect() {}
+MqttManager::MqttManager(const char* s, const char* p, const char* srv, uint16_t prt, const char* mU, const char* mP) {
+    ssid = s;
+    password = p;
+    mqtt_server = srv;
+    mqtt_port = prt;
+    mqtt_user = mU;
+    mqtt_pass = mP;
+    client = new PubSubClient(espClient);
+}
+
+void MqttManager::connectWiFi() {
+    Serial.print("Menghubungkan ke Wi-Fi...");
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.println("\nWi-Fi Terhubung.");
+}
+
+void MqttManager::reconnectMqtt() {
+    if (!client->connected()) {
+        Serial.print("Menghubungkan ke HiveMQ Cloud...");
+        String clientId = "ESP32-AQMS-";
+        clientId += String(random(0xffff), HEX);
+        
+        // HiveMQ Cloud WAJIB menggunakan autentikasi username & password
+        if (client->connect(clientId.c_str(), mqtt_user, mqtt_pass)) {
+            Serial.println("Terhubung ke HiveMQ Cloud via TLS!");
+        } else {
+            Serial.print("Gagal, rc=");
+            Serial.print(client->state());
+            Serial.println(" Coba lagi.");
+        }
+    }
+}
+
+void MqttManager::begin() {
+    connectWiFi();
+    
+    // TAMBAHKAN BARIS INI: Mengizinkan TLS tanpa menyimpan berkas CA Certificate di ESP32
+    espClient.setInsecure(); 
+    
+    client->setServer(mqtt_server, mqtt_port);
+}
+
+void MqttManager::loop() {
+    if (WiFi.status() != WL_CONNECTED) {
+        connectWiFi();
+    }
+    if (!client->connected()) {
+        reconnectMqtt();
+    }
+    client->loop();
+}
+
+bool MqttManager::publishScan(const char* topic, String data) {
+    if (client->connected()) {
+        // Format JSON payload untuk memperbarui status antrean di backend
+        String payload = "{\"status\":\"Completed\",\"queue_id\":\"" + data + "\"}";
+        return client->publish(topic, payload.c_str());
+    }
+    return false;
+}
+
+bool MqttManager::isConnected() {
+    return client->connected();
+}
