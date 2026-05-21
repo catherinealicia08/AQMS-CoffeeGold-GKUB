@@ -8,7 +8,6 @@ const CATEGORIES = ['All Drinks', 'Coffee', 'Non Coffee', 'Food'];
 
 export default function OrderPage() {
   const [activeCategory, setActiveCategory] = useState('All Drinks');
-
   return (
     <div className="flex flex-col min-h-dvh bg-cream">
       <AppHeader />

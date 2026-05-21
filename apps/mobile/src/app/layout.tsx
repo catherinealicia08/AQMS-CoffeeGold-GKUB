@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import { CartSheetProvider } from '@/context/CartSheetContext';
+import { ToastProvider } from '@/context/ToastContext';
 
 const manrope = Manrope({ subsets: ['latin'], display: 'swap' });
 
@@ -31,11 +32,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="id">
       <body className={manrope.className}>
         <AuthProvider>
-          <CartProvider>
-            <CartSheetProvider>
-              {children}
-            </CartSheetProvider>
-          </CartProvider>
+          <ToastProvider>
+            <CartProvider>
+              <CartSheetProvider>
+                {children}
+              </CartSheetProvider>
+            </CartProvider>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>
