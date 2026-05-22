@@ -11,70 +11,80 @@ MqttManager::MqttManager(const char* s, const char* p, const char* srv, uint16_t
 }
 
 void MqttManager::connectWiFi() {
+    if(WiFi.status() == WL_CONNECTED) return;
+    
     Serial.print("Menghubungkan ke Wi-Fi: ");
     Serial.println(ssid);
-    
-    // Putuskan koneksi sebelumnya jika ada
     WiFi.disconnect(true);
-    delay(1000);
-    
     WiFi.begin(ssid, password);
     
+    // Jangan blocking selamanya agar sistem antrean lokal tidak freeze
     int counter = 0;
-    while (WiFi.status() != WL_CONNECTED) {
+    while (WiFi.status() != WL_CONNECTED && counter < 10) {
         delay(500);
         Serial.print(".");
         counter++;
-        
-        // Setiap 10 kali mencoba (5 detik), cetak kode status aslinya
-        if (counter % 10 == 0) {
-            Serial.print("\n[DEBUG] Status Wi-Fi Saat Ini: ");
-            Serial.println(WiFi.status()); 
-        }
     }
-    Serial.println("\nWi-Fi Terhubung!");
+    if(WiFi.status() == WL_CONNECTED) Serial.println("\nWi-Fi Terhubung!");
 }
 
 void MqttManager::reconnectMqtt() {
-    if (!client->connected()) {
-        Serial.print("Menghubungkan ke HiveMQ Cloud...");
-        String clientId = "ESP32-AQMS-";
-        clientId += String(random(0xffff), HEX);
-        
-        // HiveMQ Cloud WAJIB menggunakan autentikasi username & password
+    if (WiFi.status() == WL_CONNECTED && !client->connected()) {
+        String clientId = "ESP32-AQMS-" + String(random(0xffff), HEX);
         if (client->connect(clientId.c_str(), mqtt_user, mqtt_pass)) {
             Serial.println("Terhubung ke HiveMQ Cloud via TLS!");
-        } else {
-            Serial.print("Gagal, rc=");
-            Serial.print(client->state());
-            Serial.println(" Coba lagi.");
         }
     }
 }
 
 void MqttManager::begin() {
     connectWiFi();
-    
-    // TAMBAHKAN BARIS INI: Mengizinkan TLS tanpa menyimpan berkas CA Certificate di ESP32
     espClient.setInsecure(); 
-    
     client->setServer(mqtt_server, mqtt_port);
 }
 
 void MqttManager::loop() {
     if (WiFi.status() != WL_CONNECTED) {
         connectWiFi();
-    }
-    if (!client->connected()) {
+    } else if (!client->connected()) {
         reconnectMqtt();
     }
-    client->loop();
+    
+    if (client->connected()) {
+        client->loop();
+    }
 }
 
-bool MqttManager::publishScan(const char* topic, String data) {
+// FORMAT 1: Penyelesaian Pesanan Normal
+bool MqttManager::publishComplete(const char* topic, String orderId) {
     if (client->connected()) {
-        // Format JSON payload untuk memperbarui status antrean di backend
-        String payload = "{\"status\":\"Completed\",\"queue_id\":\"" + data + "\"}";
+        String payload = "{\"order_id\":\"" + orderId + "\"}";
+        return client->publish(topic, payload.c_str());
+    }
+    return false;
+}
+
+// FORMAT 2: Tombol Fallback Manual
+bool MqttManager::publishFallback(const char* topic) {
+    if (client->connected()) {
+        return client->publish(topic, "{}");
+    }
+    return false;
+}
+
+// FORMAT 3: Telemetri Hardware (Heartbeat)
+bool MqttManager::publishTelemetry(const char* topic, int rssi, uint32_t freeRam) {
+    if (client->connected()) {
+        String payload = "{\"rssi\": " + String(rssi) + ", \"ram\": " + String(freeRam) + ", \"mqtt\": true}";
+        return client->publish(topic, payload.c_str());
+    }
+    return false;
+}
+
+// FORMAT 4: Error Logging
+bool MqttManager::publishError(const char* topic, String errorType, String errorMsg) {
+    if (client->connected()) {
+        String payload = "{\"type\": \"" + errorType + "\", \"msg\": \"" + errorMsg + "\"}";
         return client->publish(topic, payload.c_str());
     }
     return false;
@@ -82,4 +92,29 @@ bool MqttManager::publishScan(const char* topic, String data) {
 
 bool MqttManager::isConnected() {
     return client->connected();
+}
+
+// Fungsi menyimpan ID ke dalam RAM saat WiFi terputus
+void MqttManager::bufferOrder(String orderId) {
+    if(offlineBuffer.size() < 20) { // Limit sesuai SLA maksimum 20 antrean
+        offlineBuffer.push_back(orderId);
+        Serial.println("[Offline] Order diselamatkan di buffer lokal: " + orderId);
+    } else {
+        Serial.println("[Offline] Peringatan: Buffer lokal penuh!");
+    }
+}
+
+// Fungsi mengirim otomatis dari RAM ke Server saat koneksi pulih (FIFO)
+void MqttManager::processOfflineBuffer(const char* topic) {
+    if (client->connected() && !offlineBuffer.empty()) {
+        Serial.println("Koneksi pulih! Mengirim data dari buffer lokal...");
+        for (auto it = offlineBuffer.begin(); it != offlineBuffer.end(); ) {
+            if (publishComplete(topic, *it)) {
+                it = offlineBuffer.erase(it); // Hapus dari antrean jika sukses
+                delay(100); 
+            } else {
+                break; // Hentikan proses jika di tengah jalan gagal lagi
+            }
+        }
+    }
 }
