@@ -37,6 +37,10 @@ export default function OrderCard({ order, isCompleted }: Props) {
             #{order.queue_number ?? order.id.substring(0, 4).toUpperCase()}
           </h3>
           <p className="text-sm font-semibold text-gray-700">{order.user_name}</p>
+          {/* Order ID */}
+          <p className="text-[10px] font-mono text-gray-400 mt-0.5 tracking-wide">
+            {order.id}
+          </p>
         </div>
         <div className="text-right">
           <p className="text-[10px] text-gray-400">
