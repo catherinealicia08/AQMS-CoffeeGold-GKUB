@@ -24,8 +24,8 @@ async function sendCompletedNotification(orderId: string, userId?: string | null
     return;
   }
 
-  const userSnap = await db.collection('users').doc(userId).get();
-  const fcmToken = (userSnap.data() as { fcmToken?: string } | undefined)?.fcmToken;
+  const tokenSnap = await db.collection('fcm_tokens').doc(userId).get();
+  const fcmToken = (tokenSnap.data() as { token?: string } | undefined)?.token;
 
   if (!fcmToken) {
     console.log(`[mqtt] skip notif: no fcmToken for user ${userId}`);

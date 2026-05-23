@@ -6,6 +6,8 @@ import { signOut, updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { registerFCMToken } from '@/hooks/useFCMToken';
+import { useToast } from '@/context/ToastContext';
 
 interface Props {
   user: User;
@@ -13,16 +15,26 @@ interface Props {
 
 export default function UserProfile({ user }: Props) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [phone, setPhone] = useState('');
   const [displayName, setDisplayName] = useState(user.displayName ?? '');
   const [editingName, setEditingName] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>(
+    'unsupported'
+  );
+  const [enablingNotifications, setEnablingNotifications] = useState(false);
 
   useEffect(() => {
     getDoc(doc(db, 'users', user.uid)).then((snap) => {
       if (snap.exists()) setPhone(snap.data().phone ?? '');
     });
   }, [user.uid]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    setNotificationPermission(Notification.permission);
+  }, []);
 
   async function handleSaveName() {
     if (!displayName.trim()) return;
@@ -36,6 +48,35 @@ export default function UserProfile({ user }: Props) {
   async function handleSignOut() {
     await signOut(auth);
     router.refresh();
+  }
+
+  async function handleEnableNotifications() {
+    setEnablingNotifications(true);
+
+    try {
+      const result = await registerFCMToken(user.uid, { requestPermission: true });
+
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        setNotificationPermission(Notification.permission);
+      }
+
+      if (result === 'saved') {
+        showToast('Notifikasi pesanan aktif.', 'success');
+      } else if (result === 'denied') {
+        showToast('Izin notifikasi belum diberikan.', 'info');
+      } else if (result === 'unsupported') {
+        showToast('Notifikasi tidak didukung di perangkat ini.', 'info');
+      } else if (result === 'missing-vapid') {
+        showToast('Konfigurasi notifikasi belum lengkap.', 'info');
+      } else {
+        showToast('Notifikasi belum aktif.', 'info');
+      }
+    } catch (err) {
+      console.warn('FCM token error:', err);
+      showToast('Gagal mengaktifkan notifikasi.', 'info');
+    } finally {
+      setEnablingNotifications(false);
+    }
   }
 
   return (
@@ -98,6 +139,26 @@ export default function UserProfile({ user }: Props) {
             placeholder="—"
             className="w-full bg-transparent text-sm text-gray-700 font-medium pb-1 outline-none"
           />
+        </div>
+
+        {/* Notifications */}
+        <div className="pt-1">
+          <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-2">Notifications</p>
+          <button
+            onClick={handleEnableNotifications}
+            disabled={enablingNotifications || notificationPermission === 'granted'}
+            className="w-full min-h-11 rounded-xl bg-gold text-white text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-default"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 01-3.46 0" />
+            </svg>
+            {notificationPermission === 'granted'
+              ? 'Notifications Active'
+              : enablingNotifications
+                ? 'Enabling...'
+                : 'Enable Notifications'}
+          </button>
         </div>
       </div>
 
