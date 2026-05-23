@@ -18,6 +18,30 @@ function getMqttConfig() {
   return { host, port, username, password, clientId };
 }
 
+async function sendCompletedNotification(orderId: string, userName?: string) {
+  const tokensSnap = await db.collection('fcm_tokens').get();
+  if (tokensSnap.empty) return;
+
+  const tokens = tokensSnap.docs.map((d) => (d.data() as { token: string }).token).filter(Boolean);
+  if (tokens.length === 0) return;
+
+  const name = userName ? userName : 'Pelanggan';
+  const message = {
+    notification: {
+      title: 'Pesanan Selesai ☕',
+      body: `Pesanan ${name} (${orderId}) telah selesai dibuat.`,
+    },
+    tokens,
+  };
+
+  try {
+    const result = await admin.messaging().sendEachForMulticast(message);
+    console.log(`[mqtt] notif sent: ${result.successCount}/${tokens.length} delivered`);
+  } catch (err) {
+    console.error('[mqtt] failed to send notification', err);
+  }
+}
+
 async function markOrderCompleted(orderId: string) {
   const ref = db.collection('orders').doc(orderId);
   const snap = await ref.get();
@@ -27,7 +51,7 @@ async function markOrderCompleted(orderId: string) {
     return;
   }
 
-  const data = snap.data() as { status?: string; completed_at?: unknown } | undefined;
+  const data = snap.data() as { status?: string; completed_at?: unknown; user_name?: string } | undefined;
   if (data?.status === 'completed') {
     console.log(`[mqtt] already completed: ${orderId}`);
     return;
@@ -42,6 +66,7 @@ async function markOrderCompleted(orderId: string) {
   );
 
   console.log(`[mqtt] marked completed: ${orderId}`);
+  await sendCompletedNotification(orderId, data?.user_name);
 }
 
 async function markNextActiveOrderCompleted() {
