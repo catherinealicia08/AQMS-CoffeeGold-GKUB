@@ -3,9 +3,12 @@ import express from 'express';
 import morgan from 'morgan';
 
 import './config/firebase'; // init Firebase Admin pas startup
+import { startHiveMqSubscriber } from './mqtt/hiveMqSubscriber';
 import orderRoutes from './routes/orderRoutes';
 
 const app = express();
+
+startHiveMqSubscriber();
 
 app.use(cors());
 app.use(express.json());
