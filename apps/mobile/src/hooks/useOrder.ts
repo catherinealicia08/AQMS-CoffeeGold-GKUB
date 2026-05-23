@@ -8,6 +8,7 @@ export interface Order {
   id: string;
   status: string;
   queue_number?: number;
+  user_name?: string;
   items: { name: string; qty: number; price: number; customizations: string[] }[];
   total: number;
   created_at?: { toDate: () => Date } | null;

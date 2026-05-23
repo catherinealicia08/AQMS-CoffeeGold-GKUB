@@ -6,6 +6,8 @@ import { CartProvider } from '@/context/CartContext';
 import { CartSheetProvider } from '@/context/CartSheetContext';
 import { ToastProvider } from '@/context/ToastContext';
 
+export const dynamic = 'force-dynamic';
+
 const manrope = Manrope({ subsets: ['latin'], display: 'swap' });
 
 export const metadata: Metadata = {
