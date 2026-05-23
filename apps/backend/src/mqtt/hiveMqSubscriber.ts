@@ -18,25 +18,30 @@ function getMqttConfig() {
   return { host, port, username, password, clientId };
 }
 
-async function sendCompletedNotification(orderId: string, userName?: string) {
-  const tokensSnap = await db.collection('fcm_tokens').get();
-  if (tokensSnap.empty) return;
+async function sendCompletedNotification(orderId: string, userId?: string | null) {
+  if (!userId) {
+    console.log(`[mqtt] skip notif: no user_id on order ${orderId}`);
+    return;
+  }
 
-  const tokens = tokensSnap.docs.map((d) => (d.data() as { token: string }).token).filter(Boolean);
-  if (tokens.length === 0) return;
+  const userSnap = await db.collection('users').doc(userId).get();
+  const fcmToken = (userSnap.data() as { fcmToken?: string } | undefined)?.fcmToken;
 
-  const name = userName ? userName : 'Pelanggan';
-  const message = {
-    notification: {
-      title: 'Pesanan Selesai ☕',
-      body: `Pesanan ${name} (${orderId}) telah selesai dibuat.`,
-    },
-    tokens,
-  };
+  if (!fcmToken) {
+    console.log(`[mqtt] skip notif: no fcmToken for user ${userId}`);
+    return;
+  }
 
   try {
-    const result = await admin.messaging().sendEachForMulticast(message);
-    console.log(`[mqtt] notif sent: ${result.successCount}/${tokens.length} delivered`);
+    await admin.messaging().send({
+      token: fcmToken,
+      notification: {
+        title: 'Pesanan siap diambil! ☕',
+        body: 'Kopimu sudah selesai dibuat. Silakan ambil di counter.',
+      },
+      data: { orderId },
+    });
+    console.log(`[mqtt] notif sent to user ${userId} for order ${orderId}`);
   } catch (err) {
     console.error('[mqtt] failed to send notification', err);
   }
@@ -51,7 +56,7 @@ async function markOrderCompleted(orderId: string) {
     return;
   }
 
-  const data = snap.data() as { status?: string; completed_at?: unknown; user_name?: string } | undefined;
+  const data = snap.data() as { status?: string; completed_at?: unknown; user_id?: string | null } | undefined;
   if (data?.status === 'completed') {
     console.log(`[mqtt] already completed: ${orderId}`);
     return;
@@ -66,7 +71,7 @@ async function markOrderCompleted(orderId: string) {
   );
 
   console.log(`[mqtt] marked completed: ${orderId}`);
-  await sendCompletedNotification(orderId, data?.user_name);
+  await sendCompletedNotification(orderId, data?.user_id);
 }
 
 async function markNextActiveOrderCompleted() {
