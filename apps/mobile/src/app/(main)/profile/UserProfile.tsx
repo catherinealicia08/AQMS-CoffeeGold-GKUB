@@ -33,7 +33,7 @@ export default function UserProfile({ user }: Props) {
     setEditingName(false);
   }
 
-async function handleSignOut() {
+  async function handleSignOut() {
     await signOut(auth);
     router.refresh();
   }
@@ -59,7 +59,7 @@ async function handleSignOut() {
 
       {/* Profile fields */}
       <div className="bg-white rounded-2xl p-5 space-y-4">
-        {/* Full Name */}
+        {/* Name */}
         <div>
           <div className="flex items-center justify-between mb-1">
             <p className="text-[10px] text-gray-400 uppercase tracking-wider">Full Name</p>
