@@ -20,8 +20,8 @@ export default function UserProfile({ user }: Props) {
   const [displayName, setDisplayName] = useState(user.displayName ?? '');
   const [editingName, setEditingName] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>(
-    'unsupported'
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported' | null>(
+    null
   );
   const [enablingNotifications, setEnablingNotifications] = useState(false);
 
@@ -32,7 +32,10 @@ export default function UserProfile({ user }: Props) {
   }, [user.uid]);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator)) {
+      setNotificationPermission('unsupported');
+      return;
+    }
     setNotificationPermission(Notification.permission);
   }, []);
 
@@ -65,7 +68,7 @@ export default function UserProfile({ user }: Props) {
       } else if (result === 'denied') {
         showToast('Izin notifikasi belum diberikan.', 'info');
       } else if (result === 'unsupported') {
-        showToast('Notifikasi tidak didukung di perangkat ini.', 'info');
+        showToast('Notifikasi hanya didukung jika app di-install ke Home Screen (PWA).', 'info');
       } else if (result === 'missing-vapid') {
         showToast('Konfigurasi notifikasi belum lengkap.', 'info');
       } else {
@@ -142,24 +145,28 @@ export default function UserProfile({ user }: Props) {
         </div>
 
         {/* Notifications */}
-        <div className="pt-1">
-          <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-2">Notifications</p>
-          <button
-            onClick={handleEnableNotifications}
-            disabled={enablingNotifications || notificationPermission === 'granted'}
-            className="w-full min-h-11 rounded-xl bg-gold text-white text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-default"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 01-3.46 0" />
-            </svg>
-            {notificationPermission === 'granted'
-              ? 'Notifications Active'
-              : enablingNotifications
-                ? 'Enabling...'
-                : 'Enable Notifications'}
-          </button>
-        </div>
+        {notificationPermission !== null && notificationPermission !== 'unsupported' && (
+          <div className="pt-1">
+            <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-2">Notifications</p>
+            <button
+              onClick={handleEnableNotifications}
+              disabled={enablingNotifications || notificationPermission === 'granted' || notificationPermission === 'denied'}
+              className="w-full min-h-11 rounded-xl bg-gold text-white text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-default"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 01-3.46 0" />
+              </svg>
+              {notificationPermission === 'granted'
+                ? 'Notifications Active'
+                : notificationPermission === 'denied'
+                  ? 'Notifications Blocked'
+                  : enablingNotifications
+                    ? 'Enabling...'
+                    : 'Enable Notifications'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Sign out */}

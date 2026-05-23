@@ -21,7 +21,12 @@ export async function registerFCMToken(
   if (!('Notification' in window) || !('serviceWorker' in navigator)) return 'unsupported';
   if (!process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY) return 'missing-vapid';
 
-  const supported = await isSupported();
+  let supported = false;
+  try {
+    supported = await isSupported();
+  } catch {
+    return 'unsupported';
+  }
   if (!supported) return 'unsupported';
 
   let permission = Notification.permission;
