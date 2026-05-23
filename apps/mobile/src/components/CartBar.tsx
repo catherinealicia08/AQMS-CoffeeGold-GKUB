@@ -176,8 +176,9 @@ export default function CartBar() {
     }
   }, [pathname, closeSheet]);
 
-  // Only show on order page
-  if (pathname !== '/') return null;
+  // just show on order page
+  if (pathname !== '/') return
+  null;
 
   return (
     <>
