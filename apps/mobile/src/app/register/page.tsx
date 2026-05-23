@@ -2,10 +2,23 @@
 
 import { useState } from 'react';
 import { auth, db } from '@aqms/shared';
+import { FirebaseError } from 'firebase/app';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+
+function getRegisterErrorMessage(err: unknown) {
+  if (!(err instanceof FirebaseError)) return 'Registrasi gagal. Coba lagi.';
+
+  if (err.code === 'auth/email-already-in-use') return 'Email ini sudah terdaftar.';
+  if (err.code === 'auth/invalid-email') return 'Format email tidak valid.';
+  if (err.code === 'auth/weak-password') return 'Password minimal 6 karakter.';
+  if (err.code === 'auth/operation-not-allowed') return 'Email/password belum diaktifkan di Firebase Auth.';
+  if (err.code === 'auth/unauthorized-domain') return 'Domain aplikasi belum diizinkan di Firebase Auth.';
+
+  return `Registrasi gagal: ${err.code}`;
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,12 +34,27 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(user, { displayName: name });
-      await setDoc(doc(db, 'users', user.uid), { phone, displayName: name, email });
+      const cleanName = name.trim();
+      const cleanEmail = email.trim();
+      const cleanPhone = phone.trim();
+
+      const { user } = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+      await updateProfile(user, { displayName: cleanName });
+
+      try {
+        await setDoc(doc(db, 'users', user.uid), {
+          phone: cleanPhone,
+          displayName: cleanName,
+          email: cleanEmail,
+        });
+      } catch (profileErr) {
+        console.warn('User profile write failed:', profileErr);
+      }
+
       router.replace('/');
-    } catch {
-      setError('Registrasi gagal. Coba lagi.');
+    } catch (err) {
+      console.warn('Register failed:', err);
+      setError(getRegisterErrorMessage(err));
     } finally {
       setLoading(false);
     }
