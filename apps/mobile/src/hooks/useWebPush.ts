@@ -39,7 +39,7 @@ export async function registerWebPush(userId: string): Promise<'saved' | 'denied
     // Subscribe ke Web Push dengan VAPID public key
     const subscription = await swReg.pushManager.subscribe({
       userVisibleOnly: true, // wajib true di semua browser termasuk iOS
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as any,
     });
 
     // Simpan subscription ke Firestore: users/{uid}/pushSubscription
