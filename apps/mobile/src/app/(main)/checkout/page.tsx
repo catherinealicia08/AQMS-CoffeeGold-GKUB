@@ -6,7 +6,6 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@aqms/shared';
 import {
-  collection,
   doc,
   runTransaction,
   serverTimestamp,
@@ -28,6 +27,17 @@ function todayString() {
   }).split('/').reverse().join('-'); // → "2026-05-21"
 }
 
+/**
+ * Generate custom Document ID format: ORDER-XXXXXXXX
+ * X = angka random 0-9, total 8 digit → 100 juta kombinasi unik.
+ * queue_number (1,2,3...) tetap terpisah dan diatur oleh counter harian.
+ */
+function generateOrderId(): string {
+  const digits = Math.floor(Math.random() * 100_000_000)
+    .toString()
+    .padStart(8, '0');
+  return `ORDER-${digits}`;
+}
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, total, clear, increment, decrement } = useCart();
@@ -42,11 +52,11 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      const orderCollectionRef = collection(db, 'orders');
       const counterRef = COUNTER_REF();
 
       // runTransaction menjamin queue_number tidak bentrok walau ada order bersamaan
-      const newOrderRef = doc(orderCollectionRef);
+      // Document ID pakai format custom ORDER-XXXXXXXX (bukan Firestore auto-ID)
+      const newOrderRef = doc(db, 'orders', generateOrderId());
 
       await runTransaction(db, async (tx) => {
         const counterSnap = await tx.get(counterRef);
