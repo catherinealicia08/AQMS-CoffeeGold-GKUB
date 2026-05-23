@@ -6,7 +6,7 @@ import { signOut, updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { registerFCMToken } from '@/hooks/useFCMToken';
+import { registerWebPush } from '@/hooks/useWebPush';
 import { useToast } from '@/context/ToastContext';
 
 interface Props {
@@ -57,25 +57,25 @@ export default function UserProfile({ user }: Props) {
     setEnablingNotifications(true);
 
     try {
-      const result = await registerFCMToken(user.uid, { requestPermission: true });
+      const result = await registerWebPush(user.uid);
 
       if (typeof window !== 'undefined' && 'Notification' in window) {
         setNotificationPermission(Notification.permission);
       }
 
       if (result === 'saved') {
-        showToast('Notifikasi pesanan aktif.', 'success');
+        showToast('Notifikasi pesanan aktif! 🔔', 'success');
       } else if (result === 'denied') {
-        showToast('Izin notifikasi belum diberikan.', 'info');
+        showToast('Izin notifikasi ditolak. Aktifkan di pengaturan browser.', 'info');
       } else if (result === 'unsupported') {
-        showToast('Notifikasi hanya didukung jika app di-install ke Home Screen (PWA).', 'info');
+        showToast('Tambahkan app ke Home Screen dulu agar bisa terima notifikasi (iOS).', 'info');
       } else if (result === 'missing-vapid') {
         showToast('Konfigurasi notifikasi belum lengkap.', 'info');
       } else {
-        showToast('Notifikasi belum aktif.', 'info');
+        showToast('Gagal mengaktifkan notifikasi.', 'info');
       }
     } catch (err) {
-      console.warn('FCM token error:', err);
+      console.warn('Web Push error:', err);
       showToast('Gagal mengaktifkan notifikasi.', 'info');
     } finally {
       setEnablingNotifications(false);

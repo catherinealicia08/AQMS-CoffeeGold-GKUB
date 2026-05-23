@@ -4,7 +4,7 @@ import BottomNav from '@/components/BottomNav';
 import CartBar from '@/components/CartBar';
 import { useAuth } from '@/context/AuthContext';
 import { useOrderNotifier } from '@/hooks/useOrderNotifier';
-import { useFCMToken } from '@/hooks/useFCMToken';
+import { useWebPush } from '@/hooks/useWebPush';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -12,7 +12,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const { user, loading } = useAuth();
   const router = useRouter();
   useOrderNotifier(user?.uid ?? null);
-  useFCMToken(user?.uid ?? null);
+  useWebPush(user?.uid ?? null);
 
   useEffect(() => {
     if (!loading && !user) {
