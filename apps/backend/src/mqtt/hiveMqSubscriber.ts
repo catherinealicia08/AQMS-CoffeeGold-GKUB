@@ -1,6 +1,7 @@
 import mqtt, { type MqttClient } from 'mqtt';
 import admin, { db } from '../config/firebase';
-import { createMqttMessageHandler } from './messageLogic';
+
+const ORDER_ID_RE = /^ORDER-\d{8}$/;
 
 function env(name: string): string | undefined {
   const value = process.env[name];
@@ -31,7 +32,6 @@ async function sendCompletedNotification(orderId: string, userId?: string | null
     return;
   }
 
-  const t0 = Date.now();
   try {
     await admin.messaging().send({
       token: fcmToken,
@@ -41,9 +41,9 @@ async function sendCompletedNotification(orderId: string, userId?: string | null
       },
       data: { orderId },
     });
-    console.log(`[mqtt] notif sent to user ${userId} for order ${orderId} (${Date.now() - t0}ms)`);
+    console.log(`[mqtt] notif sent to user ${userId} for order ${orderId}`);
   } catch (err) {
-    console.error(`[mqtt] failed to send notification (${Date.now() - t0}ms)`, err);
+    console.error('[mqtt] failed to send notification', err);
   }
 }
 
@@ -62,7 +62,6 @@ async function markOrderCompleted(orderId: string) {
     return;
   }
 
-  const t0 = Date.now();
   await ref.set(
     {
       status: 'completed',
@@ -71,7 +70,7 @@ async function markOrderCompleted(orderId: string) {
     { merge: true }
   );
 
-  console.log(`[mqtt] marked completed: ${orderId} (${Date.now() - t0}ms firestore)`);
+  console.log(`[mqtt] marked completed: ${orderId}`);
   await sendCompletedNotification(orderId, data?.user_id);
 }
 
@@ -128,13 +127,38 @@ export function startHiveMqSubscriber(): MqttClient | null {
   client.on('close', () => console.log('[mqtt] connection closed'));
   client.on('error', (err: Error) => console.error('[mqtt] error', err));
 
-  client.on(
-    'message',
-    createMqttMessageHandler({
-      onComplete: markOrderCompleted,
-      onFallback: markNextActiveOrderCompleted,
-    })
-  );
+  client.on('message', async (topic: string, payload: Buffer) => {
+    if (topic === 'aqms/order/fallback') {
+      try {
+        await markNextActiveOrderCompleted();
+      } catch (err) {
+        console.error('[mqtt] fallback failed', err);
+      }
+      return;
+    }
+
+    if (topic !== 'aqms/order/complete') return;
+
+    let msg: unknown;
+    try {
+      msg = JSON.parse(payload.toString('utf8'));
+    } catch {
+      console.warn('[mqtt] invalid JSON payload');
+      return;
+    }
+
+    const orderId = (msg as { order_id?: unknown })?.order_id;
+    if (typeof orderId !== 'string' || !ORDER_ID_RE.test(orderId)) {
+      console.warn('[mqtt] invalid order_id format (expected ORDER-########)');
+      return;
+    }
+
+    try {
+      await markOrderCompleted(orderId);
+    } catch (err) {
+      console.error('[mqtt] failed to mark completed', err);
+    }
+  });
 
   return client;
 }
