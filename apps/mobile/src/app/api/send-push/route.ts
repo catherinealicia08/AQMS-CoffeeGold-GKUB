@@ -21,17 +21,23 @@ function getAdminDb() {
 
 // ─── VAPID config ────────────────────────────────────────────────────────────
 
-webPush.setVapidDetails(
-  process.env.VAPID_SUBJECT ?? 'mailto:admin@example.com',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? '',
-  process.env.VAPID_PRIVATE_KEY ?? '',
-);
+const vapidSubject = process.env.VAPID_SUBJECT ?? 'mailto:admin@example.com';
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? '';
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY ?? '';
+
+if (vapidPublicKey && vapidPrivateKey) {
+  webPush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey);
+}
 
 // ─── POST /api/send-push ─────────────────────────────────────────────────────
 // Body: { userId: string, title: string, body: string, url?: string }
 
 export async function POST(req: NextRequest) {
   try {
+    if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+      return NextResponse.json({ error: 'VAPID keys are not configured on the server' }, { status: 500 });
+    }
+
     const { userId, title, body, url } = await req.json() as {
       userId: string;
       title: string;
