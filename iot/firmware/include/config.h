@@ -2,8 +2,8 @@
 #define CONFIG_H
 
 // -- [KREDENSIAL JARINGAN] --
-#define WIFI_SSID "online"
-#define WIFI_PASSWORD "wifiku555"
+#define WIFI_SSID "nauraa"
+#define WIFI_PASSWORD "12345678"
 #define MQTT_SERVER "fac6cb04653c4b92893cb77685953ee0.s1.eu.hivemq.cloud" 
 #define MQTT_PORT 8883                 
 #define MQTT_USER "esp32-aqms"
