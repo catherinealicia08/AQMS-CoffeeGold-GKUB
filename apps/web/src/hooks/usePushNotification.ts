@@ -32,7 +32,7 @@ export function usePushNotification(userId: string | undefined) {
       if (!token || cancelled) return;
 
       await setDoc(
-        doc(db, 'fcm_tokens', userId),
+        doc(db, 'fcm_tokens', userId as string),
         { token, updated_at: serverTimestamp() },
         { merge: true }
       );

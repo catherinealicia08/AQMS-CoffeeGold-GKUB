@@ -9,7 +9,6 @@ import Sidebar from '@/components/barista/Sidebar';
 import TopBar from '@/components/barista/TopBar';
 import OrderCard from '@/components/barista/OrderCard';
 import { useActiveOrders, useCompletedOrders } from '@/hooks/useOrders';
-import { usePushNotification } from '@/hooks/usePushNotification';
 import { formatTime } from '@/lib/format';
 import { QUEUE_STATUS } from '@aqms/shared';
 
@@ -19,8 +18,6 @@ export default function BaristaPage() {
   const [activeTab, setActiveTab] = useState<'INCOMING' | 'COMPLETED'>('INCOMING');
   const [search, setSearch] = useState('');
   const [lastSync, setLastSync] = useState(new Date());
-
-  usePushNotification(user?.uid);
 
   const { orders: activeOrders } = useActiveOrders();
   const { orders: completedOrders } = useCompletedOrders();
