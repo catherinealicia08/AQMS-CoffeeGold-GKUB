@@ -13,8 +13,6 @@
     "lint": "npm run lint --workspaces --if-present"
   },
   "overrides": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2"
   }

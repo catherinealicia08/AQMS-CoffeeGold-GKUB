@@ -1,12 +1,22 @@
 {
+  "name": "@aqms/web",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
   "dependencies": {
     "@aqms/shared": "*",
+    "deep-extend": "^0.6.0",
     "firebase": "^10.0.0",
+    "lowlight": "^3.3.0",
     "next": "15.5.18",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "swagger-ui-dist": "^5.32.6",
-    "swagger-ui-react": "^5.32.6"
+    "swagger-ui-react": "^5.32.6",
+    "to-buffer": "^1.2.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
