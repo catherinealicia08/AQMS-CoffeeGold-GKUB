@@ -39,7 +39,7 @@ export default function BaristaLoginPage() {
               <path d="M16 10a4 4 0 01-8 0" />
             </svg>
           </div>
-          <h1 className="text-3xl font-black text-gold-dark tracking-tight" style={{ color: '#6B4F0A' }}>COFFE GOLD</h1>
+          <h1 className="text-3xl font-black text-gold-dark tracking-tight" style={{ color: '#6B4F0A' }}>COFFEE GOLD</h1>
           <p className="text-xs text-gray-400 tracking-widest mt-1">BARISTA STATION</p>
         </div>
 

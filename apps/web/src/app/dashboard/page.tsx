@@ -132,27 +132,37 @@ export default function DashboardPage() {
               ) : stats.totalOrdersToday === 0 ? (
                 <div className="h-32 flex items-center justify-center text-gray-300 text-xs">Belum ada order hari ini</div>
               ) : (
-                <div className="flex items-end gap-1 h-32 overflow-x-auto pb-1">
-                  {stats.hourlyOrders.map((h) => {
-                    const heightPct = (h.count / maxHourly) * 100;
-                    const isActive = h.count > 0;
-                    return (
-                      <div key={h.hour} className="flex flex-col items-center gap-1 flex-1 min-w-[20px] group relative">
-                        <div
-                          className={`w-full rounded-t-md transition-all ${isActive ? 'bg-gold' : 'bg-gray-100'}`}
-                          style={{ height: `${Math.max(heightPct, isActive ? 8 : 3)}%` }}
-                        />
-                        {isActive && (
-                          <div className="absolute -top-6 left-1/2 -translate-x-1/2 hidden group-hover:flex bg-gray-800 text-white text-[9px] rounded px-1.5 py-0.5 whitespace-nowrap z-10">
-                            {h.hour} · {h.count}
-                          </div>
-                        )}
-                        {(parseInt(h.hour) % 4 === 0) && (
-                          <span className="text-[8px] text-gray-400 shrink-0">{h.hour.slice(0, 2)}</span>
+                <div className="flex flex-col gap-1 h-32 overflow-x-auto">
+                  {/* Bars area */}
+                  <div className="flex items-end gap-1 flex-1">
+                    {stats.hourlyOrders.map((h) => {
+                      const heightPx = Math.max((h.count / maxHourly) * 96, h.count > 0 ? 8 : 3);
+                      const isActive = h.count > 0;
+                      return (
+                        <div key={h.hour} className="flex-1 min-w-[20px] flex items-end group relative">
+                          {isActive && (
+                            <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:flex bg-gray-800 text-white text-[9px] rounded px-1.5 py-0.5 whitespace-nowrap z-10">
+                              {h.hour} · {h.count}
+                            </div>
+                          )}
+                          <div
+                            className={`w-full rounded-t-md transition-all ${isActive ? 'bg-gold' : 'bg-gray-100'}`}
+                            style={{ height: `${heightPx}px` }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* Labels row — fixed at bottom */}
+                  <div className="flex gap-1 shrink-0">
+                    {stats.hourlyOrders.map((h) => (
+                      <div key={h.hour} className="flex-1 min-w-[20px] flex justify-center">
+                        {parseInt(h.hour) % 4 === 0 && (
+                          <span className="text-[8px] text-gray-400">{h.hour.slice(0, 2)}</span>
                         )}
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
