@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOrder } from '@/hooks/useOrder';
 import type { Order } from '@/hooks/useOrder';
+import { useUserOrders } from '@/hooks/useUserOrders';
+import { useAuth } from '@/context/AuthContext';
 import { QUEUE_STATUS } from '@aqms/shared';
 import { formatRupiah } from '@/lib/format';
 import Link from 'next/link';
@@ -459,19 +461,19 @@ function TabBar({
 interface Props { orderId: string | null }
 
 export default function TrackContent({ orderId }: Props) {
+  const { user } = useAuth();
+  const { completedOrders, loading: historyLoading } = useUserOrders(user?.uid ?? null);
+
   const [activeTab, setActiveTab]   = useState<'active' | 'history'>('active');
   const [activeIds,  setActiveIds]  = useState<string[]>([]);
   const [historyIds, setHistoryIds] = useState<string[]>([]);
-  // Flag: localStorage sudah dimuat, baru boleh persist
   const [hydrated, setHydrated]     = useState(false);
 
-  // ── STEP 1: Satu effect untuk hydrate + merge orderId dari URL ──
-  // Digabung agar tidak ada race condition antara dua setActiveIds
+  // ── STEP 1: Hydrate localStorage + merge orderId dari URL ──
   useEffect(() => {
     const storedActive  = loadIds(ACTIVE_KEY);
     const storedHistory = loadIds(HISTORY_KEY);
 
-    // Merge orderId dari URL sekaligus agar tidak overwrite
     if (orderId && !storedActive.includes(orderId)) {
       storedActive.unshift(orderId);
     }
@@ -480,10 +482,9 @@ export default function TrackContent({ orderId }: Props) {
     setHistoryIds(storedHistory);
     setHydrated(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // hanya saat mount
+  }, []);
 
   // ── STEP 2: Tambah orderId baru dari URL setelah hydration ──
-  // (untuk kasus user navigate kembali ke /track?orderId=... setelah mount)
   useEffect(() => {
     if (!hydrated || !orderId) return;
     setActiveIds((prev) => {
@@ -494,33 +495,35 @@ export default function TrackContent({ orderId }: Props) {
     });
   }, [orderId, hydrated]);
 
-  // ── STEP 3: Persist — HANYA setelah hydration selesai ──
-  // Tanpa guard ini, effect akan run dengan [] dan menghapus localStorage
+  // ── STEP 3: Persist activeIds ke localStorage ──
   useEffect(() => {
     if (!hydrated) return;
     saveIds(ACTIVE_KEY, activeIds);
   }, [activeIds, hydrated]);
 
+  // Persist historyIds hanya untuk guest (user login pakai Firestore)
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || user) return;
     saveIds(HISTORY_KEY, historyIds);
-  }, [historyIds, hydrated]);
+  }, [historyIds, hydrated, user]);
 
-  // Pindah order dari active ke history + switch tab
   const handleMoveToHistory = useCallback((id: string) => {
     setActiveIds((prev) => {
       const next = prev.filter((o) => o !== id);
       saveIds(ACTIVE_KEY, next);
       return next;
     });
-    setHistoryIds((prev) => {
-      if (prev.includes(id)) return prev;
-      const next = [id, ...prev];
-      saveIds(HISTORY_KEY, next);
-      return next;
-    });
+    // Guest: simpan ke localStorage. User login: Firestore otomatis update via query.
+    if (!user) {
+      setHistoryIds((prev) => {
+        if (prev.includes(id)) return prev;
+        const next = [id, ...prev];
+        saveIds(HISTORY_KEY, next);
+        return next;
+      });
+    }
     setActiveTab('history');
-  }, []);
+  }, [user]);
 
   const handleAdd = useCallback((id: string) => {
     setActiveIds((prev) => {
@@ -530,6 +533,12 @@ export default function TrackContent({ orderId }: Props) {
       return next;
     });
   }, []);
+
+  // Riwayat: user login → Firestore, guest → localStorage
+  const shownHistoryIds = user
+    ? completedOrders.map((o) => o.id)
+    : historyIds;
+  const historyCount = user ? completedOrders.length : historyIds.length;
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -545,7 +554,6 @@ export default function TrackContent({ orderId }: Props) {
           <EmptyActive onAdd={handleAdd} />
         ) : (
           <div className="flex-1 overflow-y-auto px-4 pt-3 pb-6 flex flex-col gap-4">
-            {/* Semua order aktif tampil sebagai card penuh */}
             {activeIds.map((id, index) => (
               <ActiveOrderCard
                 key={id}
@@ -554,8 +562,6 @@ export default function TrackContent({ orderId }: Props) {
                 onMoveToHistory={handleMoveToHistory}
               />
             ))}
-
-            {/* Tombol tambah pesanan lain */}
             <AddOrderInput onAdd={handleAdd} />
             <div className="text-center">
               <Link href="/" className="text-sm text-gold font-semibold">
@@ -568,14 +574,18 @@ export default function TrackContent({ orderId }: Props) {
 
       {/* ── Tab: RIWAYAT ── */}
       {activeTab === 'history' && (
-        historyIds.length === 0 ? (
+        historyLoading && user ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : shownHistoryIds.length === 0 ? (
           <EmptyHistory />
         ) : (
           <div className="flex-1 overflow-y-auto px-4 pt-3 pb-6 flex flex-col gap-3">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-              {historyIds.length} Pesanan Selesai
+              {historyCount} Pesanan Selesai
             </p>
-            {historyIds.map((id) => (
+            {shownHistoryIds.map((id) => (
               <HistoryCard key={id} orderId={id} />
             ))}
           </div>
