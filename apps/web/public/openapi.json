@@ -1,0 +1,150 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "AQMS Coffee Gold API",
+    "version": "1.0.0",
+    "description": "API Documentation untuk AQMS Coffee Gold GKUB System",
+    "contact": {
+      "name": "AQMS Team",
+      "email": "support@aqms.coffee"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3001",
+      "description": "Development Server"
+    },
+    {
+      "url": "https://api.aqms-coffee-gold-gkub.vercel.app",
+      "description": "Production API"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Check if backend service is running",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" },
+                    "service": { "type": "string", "example": "backend" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/orders": {
+      "get": {
+        "summary": "Get all orders",
+        "description": "Retrieve list of all orders with their status",
+        "tags": ["Orders"],
+        "responses": {
+          "200": {
+            "description": "List of orders retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Order" }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create new order",
+        "description": "Create a new coffee order",
+        "tags": ["Orders"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["customerName", "items"],
+                "properties": {
+                  "customerName": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "quantity": { "type": "number" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Order" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "customerName": { "type": "string" },
+          "items": {
+            "type": "array",
+            "items": { "type": "object" }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "preparing", "ready", "completed"]
+          },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "error": { "type": "string" }
+        }
+      }
+    }
+  }
+}
